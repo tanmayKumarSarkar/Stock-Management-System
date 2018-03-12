@@ -1,0 +1,201 @@
+CREATE TABLE ROLE
+(
+   ROLE_ID     NUMBER             NOT NULL         PRIMARY KEY,
+   ROLE        VARCHAR2(30)       NOT NULL                    ,
+   ROLE_DESC   VARCHAR2(100)                                      
+);
+
+INSERT INTO ROLE VALUES(1,'ADMIN','ADMISTRATIVE HEAD OF THE WHOLE STOCK MANAGEMENT SYSTEM.HAS THE MOST AUTHORITY OVER THE SYSTEM.');
+INSERT INTO ROLE VALUES(2,'OPERATOR','MONITORS THE FLOW OF STOCKS AND IN CHARGE OF THE WAREHOUSE WHERE THE STOCKS ARE KEPT.');
+
+
+CREATE TABLE STAFF
+(
+   ST_ID       NUMBER             NOT NULL         PRIMARY KEY,
+   ST_NAME     VARCHAR2(80)       NOT NULL                    ,
+   DOB         DATE               NOT NULL                    ,
+   GENDER      VARCHAR2(30)       NOT NULL                    ,
+   ST_ADDR     VARCHAR2(100)      NOT NULL                    ,
+   ST_PH_NO    NUMBER             NOT NULL                    ,
+   ST_MAIL     VARCHAR2(100)                                  ,
+   ST_PIC      BLOB                                           ,
+   USERNAME    VARCHAR2(30)       NOT NULL                    ,
+   PASSWORD    VARCHAR2(30)       NOT NULL                    ,   
+   ROLE_ID     NUMBER             NOT NULL                    ,
+   WAR_ID      NUMBER                                DEFAULT 0,
+   CONSTRAINT  FK_STAFF_ROLE_ID   FOREIGN KEY (ROLE_ID) REFERENCES ROLE ON DELETE CASCADE,
+   CONSTRAINT  CK_STAFF_MAIL      CHECK ( ST_MAIL LIKE '%@%.COM'),                      
+   CONSTRAINT  CK_STAFF_PNO       CHECK ( ( TO_CHAR(ST_PH_NO) LIKE '9_________' OR TO_CHAR(ST_PH_NO) LIKE '8_________' OR TO_CHAR(ST_PH_NO) LIKE '7_________') AND LENGTH(ST_PH_NO) = 10  )
+);
+
+INSERT INTO STAFF VALUES(101,'A','14-MAY-1989','MALE','KOLKATA',7788995544,NULL,NULL,'ADMIN','11111',1,NULL);
+INSERT INTO STAFF VALUES(102,'B','16-APR-1991','FEMALE','MUMBAI',8345218809,NULL,NULL,'OPERATOR','12345',2,1001);
+
+
+CREATE TABLE RETAILER
+(
+   RET_ID      NUMBER             NOT NULL         PRIMARY KEY,
+   RET_NAME    VARCHAR2(80)       NOT NULL                    ,
+   RET_ADDR    VARCHAR2(100)      NOT NULL                    ,
+   RET_PH_NO   NUMBER             NOT NULL                    ,
+   RET_MAIL    VARCHAR2(100)                                  ,
+   RET_PIC     BLOB                                           ,
+   LST_RET_DT  DATE                                           ,   
+   CONSTRAINT  CK_RET_PNO         CHECK (RET_PH_NO BETWEEN 7000000000 AND 9999999999),
+   CONSTRAINT  CK_RET_MAIL        CHECK ( RET_MAIL LIKE '%@%.COM')
+);
+
+
+INSERT INTO RETAILER VALUES(201,'ABC','PUNE',9008786754,NULL,NULL,NULL);
+INSERT INTO RETAILER VALUES(202,'XYZ','GURGAON',7867554432,NULL,NULL,NULL);
+
+CHECK ( ( TO_CHAR(RET_PH_NO) LIKE '9_________' OR TO_CHAR(RET_PH_NO) LIKE '8_________' OR TO_CHAR(RET_PH_NO) LIKE '7_________') AND LENGTH(RET_PH_NO) = 10  )
+
+CREATE TABLE ITEM
+(
+   ITEM_ID     NUMBER             NOT NULL         PRIMARY KEY,
+   SU_ID       NUMBER             NOT NULL                    ,
+   ITEM_NAME   VARCHAR(100)       NOT NULL                    ,
+   CAT_NAME    VARCHAR(30)        NOT NULL                    ,
+   ITEM_PRICE  NUMBER             NOT NULL                    ,
+   ITEM_WEI    NUMBER                                         ,
+   ITEM_DIM    VARCHAR2(30)                                   ,  
+   ITEM_LEFT   NUMBER             NOT NULL                    ,
+   ITEM_LIMIT  NUMBER             NOT NULL                    ,
+   ITEM_DIS    NUMBER             NOT NULL                    ,
+   ITEM_DESC   VARCHAR(100)                                   ,
+   ITEM_PIC    BLOB                                           ,
+   WAR_ID      NUMBER             NOT NULL                    ,
+   EXP_DT      DATE                                           ,
+   LST_SUP_DT  DATE                                           ,
+   LST_RET     DATE                                           ,
+   CONSTRAINT  FK_ITEM_SU_ID      FOREIGN KEY (SU_ID) REFERENCES SUPPLIER ON DELETE CASCADE,
+   CONSTRAINT  CK_ITEM_DIM        CHECK (ITEM_DIM LIKE '%-%-%'),
+   CONSTRAINT  FK_ITEM_WAR_ID     FOREIGN KEY (WAR_ID) REFERENCES WAREHOUSE ON DELETE CASCADE
+);
+
+
+INSERT INTO ITEM VALUES(10001,601,'MOTO G (3RD GEN)','SMARTPHONES',12999,140,NULL,500,2000,0,'A HIGH PREFORMANCE,POWERFUL AND VALUE FOR MONEY-MID RANGE SMARTPHONE.',NULL,1001,NULL,NULL,NULL);
+INSERT INTO ITEM VALUES(10002,601,'MOTO E (3RD GEN)','SMARTPHONES',6999,120,NULL,500,2000,0,'A LOW END UTILITY SMARTPHONE FOR REGULAR DAY TO DAY USAGE.',NULL,1001,NULL,NULL,NULL);
+INSERT INTO ITEM VALUES(10003,602,'SAMSUNG GALAXY S6 ACTIVE','SMARTPHONES',54999,120,NULL,100,500,0,'A SMARTPHONE WHICH PROVIDES SUPREME PERFORMANCE WITH GREAT BATTERY LIFE.',NULL,1001,NULL,NULL,NULL);
+
+
+CREATE TABLE PAYMENT
+(
+   PAY_ID      VARCHAR2(50)       NOT NULL         PRIMARY KEY,
+   PAY_DT      DATE               NOT NULL                    ,
+   PAY_TYPE    VARCHAR2(30)                                   ,             
+   CR_AMT      NUMBER                                         ,  
+   DB_AMT      NUMBER                                         ,
+   REM_BAL     NUMBER             NOT NULL  
+);
+
+
+
+CREATE TABLE ORDERS
+(
+   ORD_ID      VARCHAR2(50)       NOT NULL         PRIMARY KEY,
+   RET_ID      NUMBER             NOT NULL                    ,
+   RET_NAME    VARCHAR(80)        NOT NULL                    ,
+   ORD_DT      DATE               NOT NULL                    ,
+   ORD_DIS_DT  DATE               NOT NULL                    ,
+   PAY_ID      VARCHAR2(50)       NOT NULL                    ,
+   CONSTRAINT  FK_ORDER_RET_ID    FOREIGN KEY (RET_ID) REFERENCES RETAILER ON DELETE CASCADE,
+   CONSTRAINT  FK_ORDER_PAY_ID    FOREIGN KEY (PAY_ID) REFERENCES PAYMENT ON DELETE CASCADE 
+);
+
+
+
+CREATE TABLE ORDER_DETAILS
+(
+  ORD_ID       VARCHAR2(50)       NOT NULL         PRIMARY KEY,  
+  ORD_DT       DATE               NOT NULL                    ,
+  RET_ID       NUMBER             NOT NULL                    ,
+  RET_NAME     VARCHAR(80)        NOT NULL                    ,
+  RET_ADDR     VARCHAR(100)       NOT NULL                    ,
+  BILL_DATE    NUMBER             NOT NULL                    ,      
+  ITEM_ID      NUMBER             NOT NULL                    ,
+  ITEM_NAME    VARCHAR2(80)       NOT NULL                    ,
+  ITEM_DIM     VARCHAR2(30)                                   ,
+  ITEM_WEI     NUMBER                                         ,
+  ITEM_PRICE   NUMBER             NOT NULL                    ,   
+  NUM_UNITS    NUMBER             NOT NULL                    ,
+  ITEM_DIS     NUMBER             NOT NULL                    ,
+  TOT_PRICE    NUMBER             NOT NULL                    ,
+  CONSTRAINT   FK_ORDER_DETAILS_ITEM_ID FOREIGN KEY (ITEM_ID) REFERENCES ITEM ON DELETE CASCADE,
+  CONSTRAINT   FK_ORDER_DETAILS_RET_ID  FOREIGN KEY (RET_ID)  REFERENCES RETAILER ON DELETE CASCADE
+);
+
+
+CREATE TABLE SUPPLIER
+(
+   SU_ID       NUMBER             NOT NULL         PRIMARY KEY,
+   SU_NAME     VARCHAR2(80)       NOT NULL                    ,
+   SU_ADDR     VARCHAR2(100)      NOT NULL                    ,
+   SU_PH_NO    NUMBER             NOT NULL                    ,
+   SU_MAIL     VARCHAR2(100)                                  ,
+   SU_FAX      VARCHAR(30)                                    ,
+   SU_PAY      VARCHAR(30)                                    ,
+   SU_DIS      VARCHAR(30)        NOT NULL                    ,
+   SU_PIC      BLOB                                           ,
+   LST_SUP_DT  DATE                                           , 
+   CONSTRAINT  CK_SUP_PNO         CHECK ( ( TO_CHAR(SU_PH_NO) LIKE '9_________' OR TO_CHAR(SU_PH_NO) LIKE '8_________' OR TO_CHAR(SU_PH_NO) LIKE '7_________') AND LENGTH(SU_PH_NO) = 10  ),
+   CONSTRAINT  CK_SUP_MAIL        CHECK ( SU_MAIL LIKE '%@%.COM')
+ );
+
+
+INSERT INTO SUPPLIER VALUES(601,'MOTO','KOTA',8956453433,NULL,NULL,'DEMAND DRAFT',0,NULL,NULL);
+INSERT INTO SUPPLIER VALUES(602,'SAMSUNG','CHENNAI',7766554433,NULL,NULL,'ONLINE TRANSACTION',0,NULL,NULL);
+
+
+CREATE TABLE CATEGORY
+(
+   CAT_NAME    VARCHAR2(30)       NOT NULL         PRIMARY KEY,
+   CAT_DESC    VARCHAR2(100)                                     
+);
+
+
+
+INSERT INTO CATEGORY VALUES SELECT CAT_NAME,NULL FROM ITEM;
+INSERT INTO CATEGORY VALUES('LAPTOPS','HIGH PERFORMANCE LAPTOPS !!!! AT ATTARCTIVE PRICES.');
+
+CREATE TABLE BATCH_ITEM
+(  
+   BATCH_ID    NUMBER             NOT NULL         PRIMARY KEY,
+   ITEM_NAME   VARCHAR2(100)      NOT NULL                    ,
+   NO_OF_ITEMS NUMBER             NOT NULL                    , 
+   WAR_ID      NUMBER             NOT NULL                     
+);
+
+INSERT INTO BATCH_ITEM VALUES (1,'MOTO G (3RD GEN)',500,1001);
+INSERT INTO BATCH_ITEM VALUES (2,'MOTO E (3RD GEN)',500,1001);
+INSERT INTO BATCH_ITEM VALUES (3,'SAMSUNG GALAXY S6 ACTIVE',100,1001);
+
+
+
+
+CREATE TABLE WAREHOUSE
+(
+   WAR_ID      NUMBER             NOT NULL         PRIMARY KEY,      
+   WAR_NAME    VARCHAR2(30)                                   ,
+   WAR_ADDR    VARCHAR(100)       NOT NULL                    ,  
+   MAX_CAP     NUMBER             NOT NULL                    ,  
+   CNT_ITEMS   NUMBER             NOT NULL                    ,
+   BANK_BAL    NUMBER             NOT NULL                 
+);  
+
+
+INSERT INTO WAREHOUSE VALUES(1001,'MAXX STORAGE','BOSTON',10000,0,50000);
+
+CREATE TABLE EXPIRED 
+(
+  ITEM_ID NUMBER NOT NULL,
+  ITEM_NAME VARCHAR2(80) NOT NULL,
+  ITEM_LEFT NUMBER,
+  ITEM_PRICE NUMBER,
+  ITEM_LIMIT NUMBER,
+  EXP_DT DATE );
+)
+
+CREATE TABLE ORDERDB
+();
